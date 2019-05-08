@@ -84,7 +84,7 @@ class Simhash(object):
 
     def build_by_text(self, content):
         features = self._tokenize(content)
-        features = {k:sum(1 for _ in g) for k, g in groupby(sorted(features))}
+        features = {k: sum(1 for _ in g) for k, g in groupby(sorted(features))}
         return self.build_by_features(features)
 
     def build_by_features(self, features):
@@ -150,7 +150,7 @@ class SimhashIndex(object):
             self.session.execute("""DROP KEYSPACE IF EXISTS simhash""")
             self.session.execute("""CREATE KEYSPACE simhash
                                 WITH replication = {'class':'SimpleStrategy', 'replication_factor' : 3}""")
-                                self.session.execute("USE simhash")
+            self.session.execute("USE simhash")
             for i in range(self.k+1):
                 self.session.execute(("CREATE TABLE hash"+str(i)+"(hash TEXT PRIMARY KEY, hashpart TEXTPRIMARY KEY(hashpart, hash))"))
 
@@ -172,8 +172,8 @@ class SimhashIndex(object):
 
         ans = set()
 
-        for i,key in enumerate(self.get_keys(simhash)):
-            dups = [row[0] for row in session.execute("SELECT hash FROM hash%d WHERE hashpart = '%s'" % (i, key))]
+        for i, key in enumerate(self.get_keys(simhash)):
+            dups = [row[0] for row in self.session.execute("SELECT hash FROM hash%d WHERE hashpart = '%s'" % (i, key))]
             self.log.debug('key:%s', key)
             if len(dups) > 200:
                 self.log.warning('Big bucket found. key:%s, len:%s', key, len(dups))
@@ -196,7 +196,7 @@ class SimhashIndex(object):
         v = '%x' % (simhash.value)
         batch = BatchStatement()
         for i, key in enumerate(self.get_keys(simhash)):
-            batch.add(self.insert_hash[i], (v,key))
+            batch.add(self.insert_hash[i], (v, key))
         self.session.execute(batch)
 
     def delete(self, simhash):
@@ -209,7 +209,7 @@ class SimhashIndex(object):
         v = '%x' % (simhash.value)
         batch = BatchStatement()
         for i, key in enumerate(self.get_keys(simhash)):
-            batch.add(self.delete_hash[i], (v,key))
+            batch.add(self.delete_hash[i], (v, key))
         self.session.execute(batch)
 
     @property
