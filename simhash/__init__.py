@@ -127,8 +127,7 @@ class SimhashIndex(object):
 
     def __init__(self, objs, f=64, k=2, log=None, cleandb=True):
         """
-        `objs` is a list of (obj_id, simhash)
-        obj_id is a string, simhash is an instance of Simhash
+        `objs` is a list of simhash
         `f` is the same with the one for Simhash
         `k` is the tolerance
         """
@@ -152,16 +151,16 @@ class SimhashIndex(object):
                                 WITH replication = {'class':'SimpleStrategy', 'replication_factor' : 3}""")
             self.session.execute("USE simhash")
             for i in range(self.k+1):
-                self.session.execute(("CREATE TABLE hash"+str(i)+"(hash TEXT PRIMARY KEY, hashpart TEXTPRIMARY KEY(hashpart, hash))"))
+                self.session.execute("CREATE TABLE hash"+str(i)+"(hash TEXT, hashpart TEXT, PRIMARY KEY(hashpart, hash))")
 
         self.insert_hash = [self.session.prepare("INSERT INTO hash"+str(i)+"(hash,hashpart) VALUES(?,?)") for i in range(self.k+1)]
-        self.delete_hash = [self.session.prepare("DELETE FROM hash"+str(i)+"WHERE hash = ? AND hashpart = ?") for i in range(self.k+1)]
+        self.delete_hash = [self.session.prepare("DELETE FROM hash"+str(i)+" WHERE hash = ? AND hashpart = ?") for i in range(self.k+1)]
 
         for i, q in enumerate(objs):
             if i % 10000 == 0 or i == count - 1:
                 self.log.info('%s/%s', i + 1, count)
 
-            self.add(*q)
+            self.add(q)
 
     def get_near_dups(self, simhash):
         """
@@ -183,8 +182,8 @@ class SimhashIndex(object):
 
                 d = simhash.distance(sim2)
                 if d <= self.k:
-                    ans.add(sim2)
-        return list(ans)
+                    ans.add(sim2.value)
+        return ans
 
     def add(self, simhash):
         """
@@ -227,6 +226,3 @@ class SimhashIndex(object):
                 m = 2 ** (self.offsets[i + 1] - offset) - 1
             c = simhash.value >> offset & m
             yield '%x' % c
-
-    def bucket_size(self):
-        return len(self.bucket)
