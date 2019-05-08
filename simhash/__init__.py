@@ -1,4 +1,4 @@
-# Created by 1e0n in 2013
+# Created by 1e0n in 2013, Upgraded by Baudroie team in 2019
 from __future__ import division, unicode_literals
 
 import re
@@ -8,6 +8,8 @@ import logging
 import numbers
 import collections
 from itertools import groupby
+from cassandra.cluster import Cluster
+from cassandra.query import BatchStatement, SimpleStatement
 
 if sys.version_info[0] >= 3:
     basestring = str
@@ -123,7 +125,7 @@ class Simhash(object):
 
 class SimhashIndex(object):
 
-    def __init__(self, objs, f=64, k=2, log=None):
+    def __init__(self, objs, f=64, k=2, log=None, cleandb=True):
         """
         `objs` is a list of (obj_id, simhash)
         obj_id is a string, simhash is an instance of Simhash
@@ -141,7 +143,19 @@ class SimhashIndex(object):
 
         self.log.info('Initializing %s data.', count)
 
-        self.bucket = collections.defaultdict(set)
+        cluster = Cluster(['ns305788.ip-91-121-221.eu'])
+        self.session = cluster.connect()
+
+        if cleandb:
+            self.session.execute("""DROP KEYSPACE IF EXISTS simhash""")
+            self.session.execute("""CREATE KEYSPACE simhash
+                                WITH replication = {'class':'SimpleStrategy', 'replication_factor' : 3}""")
+                                self.session.execute("USE simhash")
+            for i in range(self.k+1):
+                self.session.execute(("CREATE TABLE hash"+str(i)+"(hash TEXT PRIMARY KEY, hashpart TEXTPRIMARY KEY(hashpart, hash))"))
+
+        self.insert_hash = [self.session.prepare("INSERT INTO hash"+str(i)+"(hash,hashpart) VALUES(?,?)") for i in range(self.k+1)]
+        self.delete_hash = [self.session.prepare("DELETE FROM hash"+str(i)+"WHERE hash = ? AND hashpart = ?") for i in range(self.k+1)]
 
         for i, q in enumerate(objs):
             if i % 10000 == 0 or i == count - 1:
@@ -158,43 +172,45 @@ class SimhashIndex(object):
 
         ans = set()
 
-        for key in self.get_keys(simhash):
-            dups = self.bucket[key]
+        for i,key in enumerate(self.get_keys(simhash)):
+            dups = [row[0] for row in session.execute("SELECT hash FROM hash%d WHERE hashpart = '%s'" % (i, key))]
             self.log.debug('key:%s', key)
             if len(dups) > 200:
                 self.log.warning('Big bucket found. key:%s, len:%s', key, len(dups))
 
             for dup in dups:
-                sim2, obj_id = dup.split(',', 1)
-                sim2 = Simhash(long(sim2, 16), self.f)
+                sim2 = Simhash(long(dup, 16), self.f)
 
                 d = simhash.distance(sim2)
                 if d <= self.k:
-                    ans.add(obj_id)
+                    ans.add(sim2)
         return list(ans)
 
-    def add(self, obj_id, simhash):
+    def add(self, simhash):
         """
         `obj_id` is a string
         `simhash` is an instance of Simhash
         """
         assert simhash.f == self.f
 
-        for key in self.get_keys(simhash):
-            v = '%x,%s' % (simhash.value, obj_id)
-            self.bucket[key].add(v)
+        v = '%x' % (simhash.value)
+        batch = BatchStatement()
+        for i, key in enumerate(self.get_keys(simhash)):
+            batch.add(self.insert_hash[i], (v,key))
+        self.session.execute(batch)
 
-    def delete(self, obj_id, simhash):
+    def delete(self, simhash):
         """
         `obj_id` is a string
         `simhash` is an instance of Simhash
         """
         assert simhash.f == self.f
 
-        for key in self.get_keys(simhash):
-            v = '%x,%s' % (simhash.value, obj_id)
-            if v in self.bucket[key]:
-                self.bucket[key].remove(v)
+        v = '%x' % (simhash.value)
+        batch = BatchStatement()
+        for i, key in enumerate(self.get_keys(simhash)):
+            batch.add(self.delete_hash[i], (v,key))
+        self.session.execute(batch)
 
     @property
     def offsets(self):
@@ -210,7 +226,7 @@ class SimhashIndex(object):
             else:
                 m = 2 ** (self.offsets[i + 1] - offset) - 1
             c = simhash.value >> offset & m
-            yield '%x:%x' % (c, i)
+            yield '%x' % c
 
     def bucket_size(self):
         return len(self.bucket)
