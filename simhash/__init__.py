@@ -24,10 +24,7 @@ def _hashfunc(x):
 
 
 class Simhash(object):
-
-    def __init__(
-        self, value, f=64, reg=r'[\w\u4e00-\u9fcc]+', hashfunc=None, log=None
-    ):
+    def __init__(self, value, f=64, reg=r"[\w\u4e00-\u9fcc]+", hashfunc=None, log=None):
         """
         `f` is the dimensions of fingerprints
 
@@ -63,7 +60,7 @@ class Simhash(object):
         elif isinstance(value, numbers.Integral):
             self.value = value
         else:
-            raise Exception('Bad parameter with type {}'.format(type(value)))
+            raise Exception("Bad parameter with type {}".format(type(value)))
 
     def __eq__(self, other):
         """
@@ -74,11 +71,11 @@ class Simhash(object):
         return self.value == other.value
 
     def _slide(self, content, width=4):
-        return [content[i:i + width] for i in range(max(len(content) - width + 1, 1))]
+        return [content[i : i + width] for i in range(max(len(content) - width + 1, 1))]
 
     def _tokenize(self, content):
         content = content.lower()
-        content = ''.join(re.findall(self.reg, content))
+        content = "".join(re.findall(self.reg, content))
         ans = self._slide(content)
         return ans
 
@@ -99,11 +96,11 @@ class Simhash(object):
             features = features.items()
         for f in features:
             if isinstance(f, basestring):
-                h = self.hashfunc(f.encode('utf-8'))
+                h = self.hashfunc(f.encode("utf-8"))
                 w = 1
             else:
                 assert isinstance(f, collections.Iterable)
-                h = self.hashfunc(f[0].encode('utf-8'))
+                h = self.hashfunc(f[0].encode("utf-8"))
                 w = f[1]
             for i in range(self.f):
                 v[i] += w if h & masks[i] else -w
@@ -124,7 +121,6 @@ class Simhash(object):
 
 
 class SimhashIndex(object):
-
     def __init__(self, objs, f=64, k=2, log=None, cleandb=True):
         """
         `objs` is a list of simhash
@@ -140,25 +136,41 @@ class SimhashIndex(object):
         else:
             self.log = log
 
-        self.log.info('Initializing %s data.', count)
+        self.log.info("Initializing %s data.", count)
 
-        cluster = Cluster(['ns305788.ip-91-121-221.eu'])
+        cluster = Cluster(["ns305788.ip-91-121-221.eu"])
         self.session = cluster.connect()
 
         if cleandb:
             self.session.execute("""DROP KEYSPACE IF EXISTS simhash""")
-            self.session.execute("""CREATE KEYSPACE simhash
-                                WITH replication = {'class':'SimpleStrategy', 'replication_factor' : 3}""")
+            self.session.execute(
+                """CREATE KEYSPACE simhash
+                                WITH replication = {'class':'SimpleStrategy', 'replication_factor' : 3}"""
+            )
             self.session.execute("USE simhash")
-            for i in range(self.k+1):
-                self.session.execute("CREATE TABLE hash"+str(i)+"(hash TEXT, hashpart TEXT, PRIMARY KEY(hashpart, hash))")
+            for i in range(self.k + 1):
+                self.session.execute(
+                    "CREATE TABLE hash"
+                    + str(i)
+                    + "(hash TEXT, hashpart TEXT, PRIMARY KEY(hashpart, hash))"
+                )
 
-        self.insert_hash = [self.session.prepare("INSERT INTO hash"+str(i)+"(hash,hashpart) VALUES(?,?)") for i in range(self.k+1)]
-        self.delete_hash = [self.session.prepare("DELETE FROM hash"+str(i)+" WHERE hash = ? AND hashpart = ?") for i in range(self.k+1)]
+        self.insert_hash = [
+            self.session.prepare(
+                "INSERT INTO hash" + str(i) + "(hash,hashpart) VALUES(?,?)"
+            )
+            for i in range(self.k + 1)
+        ]
+        self.delete_hash = [
+            self.session.prepare(
+                "DELETE FROM hash" + str(i) + " WHERE hash = ? AND hashpart = ?"
+            )
+            for i in range(self.k + 1)
+        ]
 
         for i, q in enumerate(objs):
             if i % 10000 == 0 or i == count - 1:
-                self.log.info('%s/%s', i + 1, count)
+                self.log.info("%s/%s", i + 1, count)
 
             self.add(q)
 
@@ -172,10 +184,15 @@ class SimhashIndex(object):
         ans = set()
 
         for i, key in enumerate(self.get_keys(simhash)):
-            dups = [row[0] for row in self.session.execute("SELECT hash FROM hash%d WHERE hashpart = '%s'" % (i, key))]
-            self.log.debug('key:%s', key)
+            dups = [
+                row[0]
+                for row in self.session.execute(
+                    "SELECT hash FROM hash%d WHERE hashpart = '%s'" % (i, key)
+                )
+            ]
+            self.log.debug("key:%s", key)
             if len(dups) > 200:
-                self.log.warning('Big bucket found. key:%s, len:%s', key, len(dups))
+                self.log.warning("Big bucket found. key:%s, len:%s", key, len(dups))
 
             for dup in dups:
                 sim2 = Simhash(long(dup, 16), self.f)
@@ -192,7 +209,7 @@ class SimhashIndex(object):
         """
         assert simhash.f == self.f
 
-        v = '%x' % (simhash.value)
+        v = "%x" % (simhash.value)
         batch = BatchStatement()
         for i, key in enumerate(self.get_keys(simhash)):
             batch.add(self.insert_hash[i], (v, key))
@@ -205,7 +222,7 @@ class SimhashIndex(object):
         """
         assert simhash.f == self.f
 
-        v = '%x' % (simhash.value)
+        v = "%x" % (simhash.value)
         batch = BatchStatement()
         for i, key in enumerate(self.get_keys(simhash)):
             batch.add(self.delete_hash[i], (v, key))
@@ -225,4 +242,4 @@ class SimhashIndex(object):
             else:
                 m = 2 ** (self.offsets[i + 1] - offset) - 1
             c = simhash.value >> offset & m
-            yield '%x' % c
+            yield "%x" % c
