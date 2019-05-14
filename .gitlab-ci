@@ -1,0 +1,50 @@
+# Stretch
+image: python:3.6
+
+# Build :: Build_dependencies
+# Test :: Unittesting
+stages:
+  - build
+  - test
+
+# Change pip's cache directory to be inside the project directory since we can
+# only cache local items.
+variables:
+  PIP_CACHE_DIR: "$CI_PROJECT_DIR/.cache/pip"
+
+
+# Cache python packages
+cache:
+  paths:
+    - .cache/pip
+    - venv/
+    - htmlcov
+    - docs/_build/html
+
+before_script:
+  - mkdir -p logs
+  - python -V               # Print out python version for debugging
+  - pip install virtualenv
+  - virtualenv venv
+  - source venv/bin/activate
+  - mkdir -p logs
+
+buid_dependencies:
+  stage: build
+  script:
+    - pip install -r requirements.txt
+  tags:
+    - docker
+
+coverage:
+  stage: test
+  before_script:
+    - pip install coverage
+  script:
+    - python -m coverage run --source . -m nosetests
+    - python -m coverage report
+    - python -m coverage html
+  coverage: '/TOTAL\s+\d+\s+\d+\s+\d+\s+\d+\s+(\d+%)/'
+  tags:
+    - docker
+

@@ -1,4 +1,4 @@
-# -*- coding: utf-8 -*-
+#!/usr/bin/env python3
 from unittest import main, TestCase
 
 from sklearn.feature_extraction.text import TfidfVectorizer
@@ -29,12 +29,12 @@ class TestSimhash(TestCase):
     def test_chinese(self):
         self.maxDiff = None
 
-        sh1 = Simhash(u'你好　世界！　　呼噜。')
-        sh2 = Simhash(u'你好，世界　呼噜')
+        sh1 = Simhash('你好　世界！　　呼噜。')
+        sh2 = Simhash('你好，世界　呼噜')
 
-        sh4 = Simhash(u'How are you? I Am fine. ablar ablar xyz blar blar blar blar blar blar blar Thanks.')
-        sh5 = Simhash(u'How are you i am fine.ablar ablar xyz blar blar blar blar blar blar blar than')
-        sh6 = Simhash(u'How are you i am fine.ablar ablar xyz blar blar blar blar blar blar blar thank')
+        sh4 = Simhash('How are you? I Am fine. ablar ablar xyz blar blar blar blar blar blar blar Thanks.')
+        sh5 = Simhash('How are you i am fine.ablar ablar xyz blar blar blar blar blar blar blar than')
+        sh6 = Simhash('How are you i am fine.ablar ablar xyz blar blar blar blar blar blar blar thank')
 
         self.assertEqual(sh1.distance(sh2), 0)
 
@@ -104,7 +104,7 @@ class TestSimhashIndex(TestCase):
         self.index = SimhashIndex(objs, k=10)
 
     def test_get_near_dup(self):
-        s1 = Simhash(u'How are you i am fine.ablar ablar xyz blar blar blar blar blar blar blar thank')
+        s1 = Simhash('How are you i am fine.ablar ablar xyz blar blar blar blar blar blar blar thank')
         dups = self.index.get_near_dups(s1)
         self.assertEqual(len(dups), 3)
 

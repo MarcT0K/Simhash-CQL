@@ -1,3 +1,5 @@
+#!/usr/bin/env python3
+
 # Created by 1e0n in 2013, Upgraded by Baudroie team in 2019
 from __future__ import division, unicode_literals
 

@@ -1,0 +1,6 @@
+cassandra-driver
+nose
+numpy
+pyyaml
+scikit-learn
+scipy
