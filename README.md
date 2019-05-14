@@ -9,7 +9,7 @@ This is a Python implementation of [Simhash](http://www.wwwconference.org/www200
 
 ## Build Status
 
-[![pipeline status](https://gitlab.utc.fr/damiemar/simhash/badges/master/pipeline.svg)](https://gitlab.utc.fr/damiemar/simhash/commits/master)
-[![coverage report](https://gitlab.utc.fr/damiemar/simhash/badges/master/coverage.svg)](https://gitlab.utc.fr/damiemar/simhash/commits/master)
+[![pipeline status](https://gitlab.utc.fr/projet-baudroie/simhash/badges/master/pipeline.svg)](https://gitlab.utc.fr/projet-baudroie/simhash/commits/master)
+[![coverage report](https://gitlab.utc.fr/projet-baudroie/simhash/badges/master/coverage.svg)](https://gitlab.utc.fr/projet-baudroie/simhash/commits/master)
 
 
