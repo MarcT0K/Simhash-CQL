@@ -9,4 +9,7 @@ This is a Python implementation of [Simhash](http://www.wwwconference.org/www200
 
 ## Build Status
 
-[![Build Status](https://travis-ci.org/leonsim/simhash.png?branch=master)](https://travis-ci.org/leonsim/simhash)
+[![pipeline status](https://gitlab.utc.fr/damiemar/simhash/badges/master/pipeline.svg)](https://gitlab.utc.fr/damiemar/simhash/commits/master)
+[![coverage report](https://gitlab.utc.fr/damiemar/simhash/badges/master/coverage.svg)](https://gitlab.utc.fr/damiemar/simhash/commits/master)
+
+
