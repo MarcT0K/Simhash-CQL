@@ -147,11 +147,11 @@ class SimhashIndex(object):
 
         self.log.info("Initializing %s data.", count)
 
-        cluster = Cluster(["ns305788.ip-91-121-221.eu"])
+        cluster = Cluster(contact_points=["ns305788.ip-91-121-221.eu"])
         self.session = cluster.connect()
 
         if cleandb:
-            self.session.execute("""DROP KEYSPACE IF EXISTS simhash""")
+            self.session.execute("""DROP KEYSPACE IF EXISTS simhash""", timeout = None)
             self.session.execute(
                 """CREATE KEYSPACE simhash
                                 WITH replication = {'class':'SimpleStrategy', 'replication_factor' : 3}"""
