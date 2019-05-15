@@ -1,7 +1,8 @@
 simhash
 ===========
 
-This is a Python implementation of [Simhash](http://www.wwwconference.org/www2007/papers/paper215.pdf).
+This is a Python implementation of [Simhash](http://www.wwwconference.org/www2007/papers/paper215.pdf). 
+The Simhash index (used to detected near-duplicates) is based on Scylla.
 
 ## Getting Started
 
