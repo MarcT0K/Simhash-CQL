@@ -159,19 +159,19 @@ class SimhashIndex(object):
             self.session.execute("USE simhash")
             for i in range(self.k + 1):
                 self.session.execute(
-                    f"""CREATE TABLE hash{str(i)}
-                    (hash TEXT, hashpart TEXT, PRIMARY KEY(hashpart, hash))"""
+                    """CREATE TABLE hash%s
+                    (hash TEXT, hashpart TEXT, PRIMARY KEY(hashpart, hash))""" % str(i)
                 )
 
         self.insert_hash = [
             self.session.prepare(
-                f"INSERT INTO hash{str(i)}(hash,hashpart) VALUES(?,?)"
+                "INSERT INTO hash%s(hash,hashpart) VALUES(?,?)" % str(i)
             )
             for i in range(self.k + 1)
         ]
         self.delete_hash = [
             self.session.prepare(
-                f"DELETE FROM hash{str(i)} WHERE hash = ? AND hashpart = ?"
+                "DELETE FROM hash%s WHERE hash = ? AND hashpart = ?" % str(i)
             )
             for i in range(self.k + 1)
         ]
