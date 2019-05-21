@@ -1,6 +1,6 @@
 cassandra-driver
-nose
 numpy
+pytest
 pyyaml
 scikit-learn
 scipy

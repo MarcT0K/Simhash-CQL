@@ -1,0 +1,13 @@
+# .coveragerc to control coverage.py
+[run]
+branch = True
+omit =
+  tests/*
+  venv/*
+  setup.py
+  */__init__.py
+
+
+[paths]
+source =
+  .

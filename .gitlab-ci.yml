@@ -6,6 +6,7 @@ image: python:3.6
 stages:
   - build
   - test
+  - deploy
 
 # Change pip's cache directory to be inside the project directory since we can
 # only cache local items.
@@ -34,17 +35,33 @@ buid_dependencies:
   script:
     - pip install -r requirements.txt
   tags:
-    - docker
+    - private
 
 coverage:
   stage: test
-  before_script:
-    - pip install coverage
   script:
-    - python -m coverage run --source . -m nosetests
+    - pip install coverage
+    - python -m coverage run --source . -m pytest
     - python -m coverage report
     - python -m coverage html
   coverage: '/TOTAL\s+\d+\s+\d+\s+\d+\s+\d+\s+(\d+%)/'
   tags:
-    - docker
+    - private
+
+pages:
+  stage: deploy
+  dependencies:
+    - coverage
+  script:
+    - mkdir -p public/coverage
+    - mv htmlcov/* public/coverage
+    - rm -r htmlcov
+  artifacts:
+    paths:
+      - public
+  tags:
+    - private
+  only:
+    - master
+
 
