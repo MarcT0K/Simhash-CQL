@@ -44,7 +44,7 @@ coverage:
     - python -m coverage run --source . -m pytest
     - python -m coverage report
     - python -m coverage html
-  coverage: '/TOTAL\s+\d+\s+\d+\s+\d+\s+\d+\s+(\d+%)/'
+  coverage: '/\s+\d+\s+\d+\s+\d+\s+\d+\s+(\d+%)/'
   tags:
     - private
 

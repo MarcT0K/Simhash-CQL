@@ -11,6 +11,6 @@ The Simhash index (used to detected near-duplicates) is based on Scylla.
 ## Build Status
 
 [![pipeline status](https://gitlab.utc.fr/projet-baudroie/simhash/badges/master/pipeline.svg)](https://gitlab.utc.fr/projet-baudroie/simhash/commits/master)
-[![coverage report](https://gitlab.utc.fr/projet-baudroie/simhash/badges/master/coverage.svg)](https://gitlab.utc.fr/projet-baudroie/simhash/commits/master)
+[![coverage report](https://gitlab.utc.fr/projet-baudroie/simhash/badges/master/coverage.svg)](https://projet-baudroie.gitlab.utc.fr/simhash/coverage)
 
 
