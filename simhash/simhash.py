@@ -128,18 +128,25 @@ class Simhash(object):
 
 class SimhashIndex(object):
     "Stores Simhash objects and can extract near duplicates of one given simhash."
-    def __init__(self, objs, f=64, k=2, log=None, cleandb=True):
+    def __init__(self, objs, f=64, k=2, log=None, cleandb=True, contact_p = None):
         """
         Simhash index initialization.
 
         :param list<Simhash>: Index will be initialized with these hashes.
         :param int f: is the dimensions of fingerprints.
         :param int k: is the tolerance.
+        :param bool cleandb: will clean the database or not.
+        :param list<IP> contact_points: look at driver for more information.
         """
         self.k = k
         self.f = f
         count = len(objs)
 
+        if contact_p is None:
+            listofIP = ["localhost"]
+        else:
+            listofIP = contact_p
+        
         if log is None:
             self.log = logging.getLogger("simhash")
         else:
@@ -147,7 +154,7 @@ class SimhashIndex(object):
 
         self.log.info("Initializing %s data.", count)
 
-        cluster = Cluster(contact_points=["ns305788.ip-91-121-221.eu"])
+        cluster = Cluster(contact_points=listofIP)
         self.session = cluster.connect()
 
         if cleandb:
